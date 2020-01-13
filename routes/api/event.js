@@ -107,7 +107,7 @@ router.delete(
       .custom(value => {
         const tkn = value.split(' ')[1];
         try {
-          return jwt.verify(tkn, 'reallysecreatkey');
+          return jwt.verify(tkn, webTkn);
         } catch (err) {
           return Promise.reject('Invalid Token');
         }
@@ -150,7 +150,7 @@ router.post(
       .custom(value => {
         const tkn = value.split(' ')[1];
         try {
-          return jwt.verify(tkn, 'reallysecreatkey');
+          return jwt.verify(tkn, webTkn);
         } catch (err) {
           return Promise.reject('Invalid Token');
         }
@@ -201,7 +201,7 @@ router.post(
       .custom(value => {
         const tkn = value.split(' ')[1];
         try {
-          return jwt.verify(tkn, 'reallysecreatkey');
+          return jwt.verify(tkn, webTkn);
         } catch (err) {
           return Promise.reject('Invalid Token');
         }

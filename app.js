@@ -5,6 +5,7 @@ const fileupload = require('express-fileupload');
 
 const login = require('./routes/api/login');
 const event = require('./routes/api/event');
+const map = require('./routes/api/map');
 
 const app = express();
 
@@ -17,7 +18,7 @@ app.use(
     safeFileNames: true,
     preserveExtension: true,
     abortOnLimit: true,
-    limits: { fileSize: 10000000, files: 1 }
+    limits: { fileSize: 16000000, files: 1 }
   })
 );
 
@@ -28,9 +29,14 @@ mongoose
   .then(() => console.log('MongoDb connected...'))
   .catch(err => console.log(err));
 
+//cleanup
+const tmpCleanup = require('./config/helper').tmpCleanup;
+app.use(tmpCleanup);
+
 // use routes
 app.use('/api/login/', login);
 app.use('/api/event/', event);
+app.use('/api/map/', map);
 
 //Listen to port
 const port = process.env.PORT || 5000;
