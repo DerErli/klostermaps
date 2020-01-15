@@ -1,10 +1,13 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
+const uuid = require('uuid/v4');
+const path = require('path');
+const mv = require('mv');
 const { header, body, validationResult } = require('express-validator');
 
-const Map = require('../../models/Map');
-const webTkn = require('../../config/keys').webTkn;
+const Map = require('../models/Map');
+const webTkn = require('../config/keys').webTkn;
 
 const router = express.Router();
 
@@ -71,16 +74,21 @@ router.post(
     var positions = req.body.postions ? req.body.postions : [];
 
     //image
+    //rename
     let temp = req.files.mapImage.tempFilePath;
     let type = req.files.mapImage.mimetype;
-    let tempNew = temp + '.' + type.replace('image/', '');
-
+    let tempNew = path.resolve('./tmp', uuid() + '.' + type.replace('image/', ''));
     fs.renameSync(temp, tempNew);
+
+    //read file
     let data = fs.readFileSync(tempNew);
     data = Buffer.alloc(data.byteLength, data, 'binary').toString('base64');
-    fs.unlinkSync(tempNew);
 
-    var image = { data: String(data), contentType: type };
+    //move / prepare file to be saved
+    mv(tempNew, path.resolve('./userUploads', path.basename(tempNew)), err => {
+      if (err) console.error(err);
+    });
+    var image = { data: String(data), contentType: type, fileName: path.basename(tempNew) };
 
     var newMap = new Map({
       name,

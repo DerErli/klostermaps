@@ -1,11 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const resolve = require('path').resolve;
 const fileupload = require('express-fileupload');
 
-const login = require('./routes/api/login');
-const event = require('./routes/api/event');
-const map = require('./routes/api/map');
+const login = require('./routes/login');
+const event = require('./routes/event');
+const map = require('./routes/map');
 
 const app = express();
 
@@ -29,9 +30,19 @@ mongoose
   .then(() => console.log('MongoDb connected...'))
   .catch(err => console.log(err));
 
+//sync user uploads
+const restoreImages = require('./config/helper').restoreImages;
+restoreImages();
+
 //cleanup
 const tmpCleanup = require('./config/helper').tmpCleanup;
 app.use(tmpCleanup);
+
+//serve app
+app.use('/', express.static('./client/public'));
+app.get('/', (req, res) => {
+  res.sendFile(resolve('./client/index.html'));
+});
 
 // use routes
 app.use('/api/login/', login);

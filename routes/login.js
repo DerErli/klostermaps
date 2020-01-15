@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const { check, validationResult } = require('express-validator');
 const crypto = require('crypto');
 
-const admin = require('../../config/keys').admin;
-const webTkn = require('../../config/keys').webTkn;
+const admin = require('../config/keys').admin;
+const webTkn = require('../config/keys').webTkn;
 
 const router = express.Router();
 

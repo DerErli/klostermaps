@@ -9,7 +9,8 @@ const CardSchema = new Schema({
   },
   image: {
     data: String,
-    contentType: String
+    contentType: String,
+    fileName: String
   },
   positions: [
     {

@@ -2,8 +2,8 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { header, body, validationResult } = require('express-validator');
 
-const Event = require('../../models/Event');
-const webTkn = require('../../config/keys').webTkn;
+const Event = require('../models/Event');
+const webTkn = require('../config/keys').webTkn;
 
 const router = express.Router();
 
