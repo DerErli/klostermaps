@@ -3,11 +3,12 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const resolve = require('path').resolve;
 const fileupload = require('express-fileupload');
+const cors = require('cors')
 
 const login = require('./routes/login');
 const event = require('./routes/event');
 const map = require('./routes/map');
-const frntend = require('./routes/frntend');
+const frntend = require('./routes/frontend');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(
     limits: { fileSize: 16000000, files: 1 }
   })
 );
+app.use(cors())
 
 // DB config
 const db = require('./config/keys').mongoURI;

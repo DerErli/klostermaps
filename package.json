@@ -10,6 +10,7 @@
   "author": "Info K2 2020 p.p. Valentin Schmitz",
   "license": "ISC",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-fileupload": "^1.1.6",
     "express-validator": "^6.3.1",

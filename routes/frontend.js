@@ -28,7 +28,7 @@ router.get(
     var name = req.headers.map;
     var map = await Map.find({ name }).select('name image.fileName positions');
 
-    if (map == []) {
+    if (!map[0]) {
       return res.json({ msg: `Map not found: ${name}` });
     }
 
