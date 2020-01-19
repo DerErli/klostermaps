@@ -7,7 +7,7 @@ const fileupload = require('express-fileupload');
 const login = require('./routes/login');
 const event = require('./routes/event');
 const map = require('./routes/map');
-const frntend = require('./routes/frntend').default;
+const frntend = require('./routes/frntend');
 
 const app = express();
 
