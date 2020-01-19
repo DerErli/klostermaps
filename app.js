@@ -7,6 +7,7 @@ const fileupload = require('express-fileupload');
 const login = require('./routes/login');
 const event = require('./routes/event');
 const map = require('./routes/map');
+const frntend = require('./routes/frntend').default;
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.get('/', (req, res) => {
 app.use('/api/login/', login);
 app.use('/api/event/', event);
 app.use('/api/map/', map);
+app.use('/api/app/', frntend);
 
 //Listen to port
 const port = process.env.PORT || 5000;
