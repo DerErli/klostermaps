@@ -124,7 +124,8 @@ router.get(
         } catch (err) {
           return Promise.reject('Invalid Token');
         }
-      })
+      }),
+    header('withimage').isBoolean()
   ],
   async (req, res) => {
     //validation
@@ -134,8 +135,14 @@ router.get(
     }
 
     //get maps
+    var withimage = req.headers.withimage ? req.headers.withimage : false;
+
     try {
-      var maps = await Map.find().select('-__v');
+      if (withimage) {
+        var maps = await Map.find().select('-__v ');
+      } else {
+        var maps = await Map.find().select('-__v -image');
+      }
       res.json({ maps });
     } catch (err) {
       res.status(500).json({ msg: 'Internal server error', err: err });
