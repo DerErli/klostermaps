@@ -10,13 +10,7 @@ const router = express.Router();
 // @desc GET map by name from db
 // @access Public
 router.get(
-  '/map',
-  [
-    header('map')
-      .isString()
-      .isLength({ max: 150 })
-      .escape()
-  ],
+  '/map/:name',
   async (req, res) => {
     //validation
     var errors = validationResult(req);
@@ -25,7 +19,7 @@ router.get(
     }
 
     //get map
-    var name = req.headers.map;
+    var name = req.params.name;
     var map = await Map.find({ name }).select('name image.fileName positions');
 
     if (!map[0]) {
@@ -33,13 +27,7 @@ router.get(
     }
 
     map = map[0];
-
-    res.sendFile(path.resolve('./userUploads', map.image.fileName), {
-      headers: {
-        name: map.name,
-        positions: map.positions.toString()
-      }
-    });
+    res.download(path.join(__dirname, '../userUploads', map.image.fileName))
   }
 );
 

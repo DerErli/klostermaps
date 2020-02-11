@@ -46,6 +46,7 @@ app.use('/', express.static('./client/public'));
 app.get('/', (req, res) => {
   res.sendFile(resolve('./client/index.html'));
 });
+app.use('/api/maps/', express.static('./userUploads'));
 
 // use routes
 app.use('/api/login/', login);

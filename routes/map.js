@@ -108,6 +108,62 @@ router.post(
   }
 );
 
+router.post(
+  '/upload',
+  [
+    header('authorization')
+      .isString()
+      .bail()
+      .custom(value => {
+        const tkn = value.split(' ')[1];
+        try {
+          return jwt.verify(tkn, webTkn);
+        } catch (err) {
+          return Promise.reject('Invalid Token');
+        }
+      })
+  ],
+  async (req, res) => {
+    //validation
+    var errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    if (typeof req.files.mapImage === 'undefined') {
+      return res.status(422).json({ value: 'empty', msg: 'No file supplied', param: 'mapImage' });
+    } else {
+      var mimetype = req.files.mapImage.mimetype;
+      if (!mimetype.includes('image')) {
+        return res.status(422).json({ value: 'file', msg: 'Not an image', param: 'mapImage' });
+      }
+    }
+    //image
+    //rename
+    let temp = req.files.mapImage.tempFilePath;
+    let type = req.files.mapImage.mimetype;
+    let tempNew = path.resolve('./tmp', uuid() + '.' + type.replace('image/', ''));
+    fs.renameSync(temp, tempNew);
+
+    //read file
+    let data = fs.readFileSync(tempNew);
+    data = Buffer.alloc(data.byteLength, data, 'binary').toString('base64');
+
+    //move / prepare file to be saved
+    mv(tempNew, path.resolve('./userUploads', path.basename(tempNew)), err => {
+      if (err) console.error(err);
+    });
+    var uploadedImage = { data: String(data), contentType: type, fileName: path.basename(tempNew) };
+
+    //save map
+    try {
+      res.json({ msg: 'Image saved', fileName: uploadedImage.fileName });
+    } catch (err) {
+      res.status(500).json({ msg: 'Internal server error', err: err });
+    }
+  }
+);
+
 // @route GET api/map
 // @desc GET Get Maps
 // @access Protected (token required)
