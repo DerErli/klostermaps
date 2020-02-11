@@ -7,18 +7,24 @@ const CardSchema = new Schema({
     type: String,
     required: true
   },
-  image: {
-    data: String,
-    contentType: String,
-    fileName: String
+  description: {
+    type: String
   },
-  positions: [
+  mapFileName: {
+    type: String
+  },
+  mapRawImage: {
+    data: String,
+    contentType: String
+  },
+  markers: [
     {
       id: { type: Number },
-      posx: { type: Number },
-      posy: { type: Number }
+      position: { type: Object },
+      roomType: { type: String }
     }
-  ]
+  ],
+  polylines: [{ nodes: { type: Array } }]
 });
 
 module.exports = Card = mongoose.model('card', CardSchema);

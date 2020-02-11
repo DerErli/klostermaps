@@ -21,13 +21,13 @@ module.exports = {
     //compares local files to db
     var files = fs.readdirSync(userUpload);
 
-    let images = await Map.find().select('image.fileName _id');
+    let images = await Map.find().select('mapFileName _id');
     let missing = [];
 
     //check which files exist
     for (key in images) {
-      if (files.includes(images[key].image.fileName)) {
-        files.splice(files.indexOf(images[key].image.fileName), 1);
+      if (files.includes(images[key].mapFileName)) {
+        files.splice(files.indexOf(images[key].mapFileName), 1);
       } else {
         missing.push(images[key]);
       }
@@ -42,10 +42,10 @@ module.exports = {
 
     //create missing files
     for (key in missing) {
-      let data = await Map.findById(missing[key]._id).select('image.data');
-      data = data.image.data;
+      let data = await Map.findById(missing[key]._id).select('mapRawImage');
+      data = data.mapRawImage.data;
       data = Buffer.alloc(data.length, data, 'base64');
-      fs.writeFileSync(path.resolve('./userUploads', missing[key].image.fileName), data, 'base64');
+      fs.writeFileSync(path.resolve('./userUploads', missing[key].mapFileName), data, 'base64');
     }
 
     if (files.length != 0 || missing.length != 0) console.log("Files in 'userUploads' synced with database!");
