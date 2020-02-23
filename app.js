@@ -37,6 +37,10 @@ mongoose
 const restoreImages = require('./scripts/helper').restoreImages;
 restoreImages();
 
+//cache Graph
+const cacheGraph = require('./scripts/pathfinding').cacheGraph;
+cacheGraph();
+
 //cleanup
 const tmpCleanup = require('./scripts/helper').tmpCleanup;
 app.use(tmpCleanup);

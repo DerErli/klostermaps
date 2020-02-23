@@ -92,6 +92,10 @@ router.post(
     } catch (err) {
       res.status(500).json({ msg: 'Internal server error', err: err });
     }
+
+    //cache Graph
+    const cacheGraph = require('../scripts/pathfinding').cacheGraph;
+    cacheGraph();
   }
 );
 

@@ -21,6 +21,9 @@ module.exports = {
     //compares local files to db
     var files = fs.readdirSync(userUpload);
 
+    var graph = files.indexOf('cachedGraphTmp.json');
+    if (graph != -1) files.splice(graph);
+
     let images = await Map.find().select('mapFileName _id');
     let missing = [];
 
