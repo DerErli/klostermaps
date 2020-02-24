@@ -25,6 +25,13 @@ router.post(
         });
       })
       .escape(),
+
+    body('description')
+      .optional()
+      .isString()
+      .isLength({ max: 200 })
+      .escape(),
+
     header('authorization')
       .isString()
       .bail()
@@ -46,7 +53,9 @@ router.post(
 
     //create new Event
     const newEvent = new Event({
-      name: req.body.name
+      name: req.body.name,
+      description: req.body.description,
+      keywords: req.body.keywords
     });
 
     //save Event
@@ -94,13 +103,43 @@ router.get(
   }
 );
 
+router.get(
+  '/active',
+  [
+    header('authorization')
+      .isString()
+      .bail()
+      .custom(value => {
+        const tkn = value.split(' ')[1];
+        try {
+          return jwt.verify(tkn, webTkn);
+        } catch (err) {
+          return Promise.reject('Invalid Token');
+        }
+      })
+  ],
+  async (req, res) => {
+    //validation
+    var errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    try {
+      var event = await Event.find({ active: true }).select('-__v');
+      res.json({ event });
+    } catch (err) {
+      res.status(500).json({ msg: 'Internal server error', err: err });
+    }
+  }
+)
+
 // @route DELETE api/event
 // @desc DELETE Delete Event
 // @access Protected (token required)
 router.delete(
-  '/',
+  '/:id',
   [
-    body('eventid').isMongoId(),
     header('authorization')
       .isString()
       .bail()
@@ -122,7 +161,7 @@ router.delete(
 
     //delete Event
     try {
-      var event = await Event.findByIdAndDelete(req.body.eventid);
+      var event = await Event.findByIdAndDelete(req.params.id);
       if (event) {
         res.json({ msg: 'Event deleted', event });
       } else {
@@ -134,16 +173,12 @@ router.delete(
   }
 );
 
-// @route POST api/event/activate
-// @desc POST Toogle activation of event
+// @route PATCH api/event/activate
+// @desc PATCH Toogle activation of event
 // @access Protected (token required)
-router.post(
-  '/activate',
+router.patch(
+  '/:id/activate',
   [
-    body('eventid').isMongoId(),
-    body('state')
-      .isString()
-      .isBoolean(),
     header('authorization')
       .isString()
       .bail()
@@ -164,14 +199,18 @@ router.post(
     }
 
     //update event
-    var eventid = req.body.eventid;
-    var state = req.body.state;
+    var eventid = req.params.id;
 
     try {
-      var event = await Event.findByIdAndUpdate(eventid, { active: state }).select('-__v');
-      event.active = state;
+      var events = await Event.find().select('-__v');
+      for(var event of events) {
+        await Event.findByIdAndUpdate(event.id, {active: false});
+      }
+
+      var event = await Event.findByIdAndUpdate(eventid, { active: true }).select('-__v');
+      event.active = true;
       if (event) {
-        res.json({ msg: `Event activation is set to ${state}`, event });
+        res.json({ msg: `Event activation is set to ${true}`, event });
       } else {
         res.status(400).json({ msg: 'Event update failed' });
       }
@@ -181,13 +220,12 @@ router.post(
   }
 );
 
-// @route POST api/event/keyword
-// @desc POST Update keywords of an event
+// @route PATCH api/event/keywords
+// @desc PATCH Update keywords of an event
 // @access Protected (token required)
-router.post(
-  '/keyword',
+router.patch(
+  '/:eventId/keywords',
   [
-    body('eventid').isMongoId(),
     body('keywords').isArray(),
     body('keywords.*.key')
       .isString()
@@ -215,7 +253,7 @@ router.post(
     }
 
     //update keywords
-    var eventid = req.body.eventid;
+    var eventid = req.params.eventId;
     var keywords = req.body.keywords;
 
     try {
