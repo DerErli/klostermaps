@@ -221,4 +221,4 @@ function findPath(fromMap, fromId, toMap, toId) {
   }
 }
 
-module.exports = { cacheGrid: cacheGraph, findPath };
+module.exports = { cacheGraph, findPath };
