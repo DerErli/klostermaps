@@ -30,6 +30,7 @@ router.post(
         });
       }),
     body('description')
+      .optional()
       .isString()
       .isLength({ max: 280 })
       .escape(),
@@ -96,6 +97,40 @@ router.post(
     //cache Graph
     const cacheGraph = require('../scripts/pathfinding').cacheGraph;
     cacheGraph();
+  }
+);
+
+router.post(
+  '/name/:name/exists',
+  [
+    header('authorization')
+      .isString()
+      .bail()
+      .custom(value => {
+        const tkn = value.split(' ')[1];
+        try {
+          return jwt.verify(tkn, webTkn);
+        } catch (err) {
+          return Promise.reject('Invalid Token');
+        }
+      })
+  ],
+  async (req, res) => {
+    //validation
+    var errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    //get map
+    var name = req.params.name;
+    var map = await Map.find({ name }).select("name");
+
+    if (!map[0]) {
+      return res.json({ res: false });
+    }else {
+      return res.json({ res: true });
+    }
   }
 );
 
@@ -192,9 +227,8 @@ router.get(
 // @desc DELETE Delete map
 // @access Protected (token required)
 router.delete(
-  '/',
+  '/:id',
   [
-    header('mapid').isMongoId(),
     header('authorization')
       .isString()
       .bail()
@@ -216,7 +250,7 @@ router.delete(
 
     //delete map
     try {
-      var map = await Map.findByIdAndDelete(req.headers.mapid);
+      var map = await Map.findByIdAndDelete(req.params.id);
       if (map) {
         res.json({ msg: 'Map deleted', map });
       } else {
