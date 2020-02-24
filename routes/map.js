@@ -82,7 +82,7 @@ router.post(
       markers,
       polylines
     });
-
+    
     //try to save map
     try {
       await newMap.save();
@@ -176,7 +176,7 @@ router.get(
 
     //get maps
     try {
-      var maps = await Map.find().select('-__v -mapRawImage -mapFileName');
+      var maps = await Map.find().select('-__v -mapRawImage');
       res.json({ maps });
     } catch (err) {
       res.status(500).json({ msg: 'Internal server error', err: err });
