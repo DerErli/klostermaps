@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const resolve = require('path').resolve;
 const fileupload = require('express-fileupload');
-const cors = require('cors')
+const cors = require('cors');
 
 const login = require('./routes/login');
 const event = require('./routes/event');
@@ -24,7 +24,7 @@ app.use(
     limits: { fileSize: 16000000, files: 1 }
   })
 );
-app.use(cors())
+app.use(cors());
 
 // DB config
 const db = require('./config/keys').mongoURI;
@@ -34,11 +34,15 @@ mongoose
   .catch(err => console.log(err));
 
 //sync user uploads
-const restoreImages = require('./config/helper').restoreImages;
+const restoreImages = require('./scripts/helper').restoreImages;
 restoreImages();
 
+//cache Graph
+const cacheGraph = require('./scripts/pathfinding').cacheGraph;
+cacheGraph();
+
 //cleanup
-const tmpCleanup = require('./config/helper').tmpCleanup;
+const tmpCleanup = require('./scripts/helper').tmpCleanup;
 app.use(tmpCleanup);
 
 //serve app
