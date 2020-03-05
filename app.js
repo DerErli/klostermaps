@@ -41,6 +41,10 @@ restoreImages();
 const cacheGraph = require('./scripts/pathfinding').cacheGraph;
 cacheGraph();
 
+//cache Keywords
+const cacheKeywords = require('./scripts/helper').cacheKeywords;
+cacheKeywords();
+
 //cleanup
 const tmpCleanup = require('./scripts/helper').tmpCleanup;
 app.use(tmpCleanup);

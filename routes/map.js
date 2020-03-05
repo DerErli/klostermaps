@@ -83,7 +83,7 @@ router.post(
       markers,
       polylines
     });
-    
+
     //try to save map
     try {
       await newMap.save();
@@ -100,6 +100,9 @@ router.post(
   }
 );
 
+// @route POST api/map/name/:name/exists
+// @desc POST Check if map exists
+// @access Protected (token required)
 router.post(
   '/name/:name/exists',
   [
@@ -124,11 +127,11 @@ router.post(
 
     //get map
     var name = req.params.name;
-    var map = await Map.find({ name }).select("name");
+    var map = await Map.find({ name }).select('name');
 
     if (!map[0]) {
       return res.json({ res: false });
-    }else {
+    } else {
       return res.json({ res: true });
     }
   }

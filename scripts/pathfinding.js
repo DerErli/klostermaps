@@ -8,7 +8,7 @@ const cachedGraph = path.resolve('./userUploads', 'cachedGraphTmp.json');
 
 async function cacheGraph() {
   try {
-    let maps = await Map.find().select('markers polylines');
+    let maps = await Map.find().select('markers polylines name');
 
     let createGraph = require('ngraph.graph');
     let graph = createGraph();
@@ -38,7 +38,7 @@ async function cacheGraph() {
 
     if (update) {
       await fs.writeJson(cachedGraph, data);
-      console.log('Graph cached!');
+      console.log(`Graph cached : ${graph.getLinksCount()} Links`);
     }
   } catch (err) {
     console.log('Graph caching failed!');
@@ -46,7 +46,7 @@ async function cacheGraph() {
   }
 }
 
-function extendGraph(map, graph) {
+function extendGraph(map, graph, stairways) {
   let connections = [];
   let points = [];
 
@@ -185,8 +185,17 @@ function extendGraph(map, graph) {
       return p.id == link.end;
     });
     var dist = Math.sqrt(Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2));
+    var data = { weight: dist, a, b };
+    graph.addLink(map.name + '_' + link.start, map.name + '_' + link.end, data);
+  }
 
-    graph.addLink(map.name + '_' + link.start, map.name + '_' + link.end, { weight: dist });
+  for (marker of map.markers) {
+    if (marker.type == 'stairway') {
+      var a = { id: marker.id, lat: marker.pos.lat, lng: marker.pos.lng };
+      var b = { id: marker.exit.id, lat: marker.exit.position.lat, lng: marker.exit.position.lng };
+      var data = { weight: 40, a, b };
+      graph.addLink(map.name + '_' + a.id, marker.exit.map + '_' + b.id, data);
+    }
   }
 }
 
@@ -195,7 +204,7 @@ function findPath(fromMap, fromId, toMap, toId) {
   let graph = createGraph();
 
   if (!fs.existsSync(cachedGraph)) {
-    console.error('No graph found');
+    console.log('No graph found');
     return false;
   }
 
@@ -217,6 +226,7 @@ function findPath(fromMap, fromId, toMap, toId) {
     let p = pathFinder.find(fromMap + '_' + fromId, toMap + '_' + toId);
     return p;
   } catch (err) {
+    console.log(err);
     return false;
   }
 }

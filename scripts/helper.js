@@ -1,7 +1,9 @@
 const fs = require('fs-extra');
 const path = require('path');
+const crypto = require('crypto');
 
 const Map = require('../models/Map');
+const Event = require('../models/Event');
 
 module.exports = {
   tmpCleanup: function(req, res, next) {
@@ -23,6 +25,8 @@ module.exports = {
 
     var graph = files.indexOf('cachedGraphTmp.json');
     if (graph != -1) files.splice(graph);
+    var keys = files.indexOf('cachedKeywordsTmp.json');
+    if (keys != -1) files.splice(keys);
 
     let images = await Map.find().select('mapFileName _id');
     let missing = [];
@@ -52,5 +56,44 @@ module.exports = {
     }
 
     if (files.length != 0 || missing.length != 0) console.log("Files in 'userUploads' synced with database!");
+  },
+  cacheKeywords: async function() {
+    try {
+      var events = await Event.find({ active: true });
+
+      var keywords = [];
+      for (event of events) {
+        keywords = keywords.concat(event.keywords);
+      }
+
+      keywords = { keywords: keywords };
+      var data = JSON.stringify(keywords);
+
+      const cachedKeywords = path.resolve('./userUploads', 'cachedKeywordsTmp.json');
+
+      var update = true;
+      if (fs.existsSync(cachedKeywords)) {
+        var old = await fs.readJSON(cachedKeywords);
+        if (
+          crypto
+            .createHash('sha256')
+            .update(data)
+            .digest('base64') ==
+          crypto
+            .createHash('sha256')
+            .update(old)
+            .digest('base64')
+        )
+          update = false;
+      }
+
+      if (update) {
+        await fs.writeJson(cachedKeywords, data);
+        console.log(`Keywords cached : ${keywords.keywords[0] == null ? 0 : keywords.keywords.length}`);
+      }
+    } catch (err) {
+      console.log('Keyword caching failed!');
+      console.error(err);
+    }
   }
 };
