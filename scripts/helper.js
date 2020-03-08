@@ -24,9 +24,9 @@ module.exports = {
     var files = fs.readdirSync(userUpload);
 
     var graph = files.indexOf('cachedGraphTmp.json');
-    if (graph != -1) files.splice(graph);
+    if (graph != -1) files.splice(graph, 1);
     var keys = files.indexOf('cachedKeywordsTmp.json');
-    if (keys != -1) files.splice(keys);
+    if (keys != -1) files.splice(keys, 1);
 
     let images = await Map.find().select('mapFileName _id');
     let missing = [];
