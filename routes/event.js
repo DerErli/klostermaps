@@ -4,8 +4,18 @@ const { header, body, validationResult } = require('express-validator');
 
 const Event = require('../models/Event');
 const webTkn = require('../config/keys').webTkn;
+const cacheKeywords = require('../scripts/helper').cacheKeywords;
 
 const router = express.Router();
+
+router.use(function(req, res, next) {
+  if (req.method != 'GET') {
+    res.on('finish', () => {
+      cacheKeywords();
+    });
+  }
+  next();
+});
 
 // @route POST api/event
 // @desc POST Create event
@@ -132,7 +142,7 @@ router.get(
       res.status(500).json({ msg: 'Internal server error', err: err });
     }
   }
-)
+);
 
 // @route DELETE api/event
 // @desc DELETE Delete Event
@@ -203,8 +213,8 @@ router.patch(
 
     try {
       var events = await Event.find().select('-__v');
-      for(var event of events) {
-        await Event.findByIdAndUpdate(event.id, {active: false});
+      for (var event of events) {
+        await Event.findByIdAndUpdate(event.id, { active: false });
       }
 
       var event = await Event.findByIdAndUpdate(eventid, { active: true }).select('-__v');

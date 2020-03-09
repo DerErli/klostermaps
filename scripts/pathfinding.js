@@ -8,7 +8,7 @@ const cachedGraph = path.resolve('./userUploads', 'cachedGraphTmp.json');
 
 async function cacheGraph() {
   try {
-    let maps = await Map.find().select('markers polylines');
+    let maps = await Map.find().select('markers polylines name');
 
     let createGraph = require('ngraph.graph');
     let graph = createGraph();
@@ -38,7 +38,7 @@ async function cacheGraph() {
 
     if (update) {
       await fs.writeJson(cachedGraph, data);
-      console.log('Graph cached!');
+      console.log(`Graph cached : ${graph.getLinksCount()} Links`);
     }
   } catch (err) {
     console.log('Graph caching failed!');
@@ -46,7 +46,7 @@ async function cacheGraph() {
   }
 }
 
-function extendGraph(map, graph) {
+function extendGraph(map, graph, stairways) {
   let connections = [];
   let points = [];
 
@@ -56,7 +56,9 @@ function extendGraph(map, graph) {
   //->get markers
   for (marker of map.markers) {
     let pos = marker.position;
-    points.push({ id: marker.id, lat: pos.lat, lng: pos.lng });
+    let point = { id: marker.id, lat: pos.lat, lng: pos.lng, map: map._id };
+    if (marker.type == 'stairway') point.flag = 'stairway';
+    points.push(point);
   }
 
   //-->get polyPoints
@@ -64,7 +66,7 @@ function extendGraph(map, graph) {
     let nodes = poly.nodes;
     poly.points = [];
     for (node of nodes) {
-      points.push({ id: i, lat: node.lat, lng: node.lng });
+      points.push({ id: i, lat: node.lat, lng: node.lng, map: map._id });
       poly.points.push(i);
       i++;
     }
@@ -156,7 +158,7 @@ function extendGraph(map, graph) {
     for (var y = x - 1; y > 0; y--) {
       var intersect = checkIntersect(connections[x], connections[y]);
       if (intersect) {
-        points.push({ id: i, lat: intersect[0], lng: intersect[1] });
+        points.push({ id: i, lat: intersect[0], lng: intersect[1], map: map._id });
 
         var l1_1 = { start: connections[x].start, end: i };
         var l1_2 = { start: i, end: connections[x].end };
@@ -177,6 +179,10 @@ function extendGraph(map, graph) {
     return !c.del;
   });
 
+  for (point of points) {
+    graph.addNode(map.name + '_' + point.id, point);
+  }
+
   for (link of connections) {
     var a = points.find(p => {
       return p.id == link.start;
@@ -185,8 +191,17 @@ function extendGraph(map, graph) {
       return p.id == link.end;
     });
     var dist = Math.sqrt(Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2));
+    var data = { weight: dist };
+    graph.addLink(map.name + '_' + link.start, map.name + '_' + link.end, data);
+  }
 
-    graph.addLink(map.name + '_' + link.start, map.name + '_' + link.end, { weight: dist });
+  for (marker of map.markers) {
+    if (marker.type == 'stairway') {
+      var a = { id: marker.id, lat: marker.pos.lat, lng: marker.pos.lng };
+      var b = { id: marker.exit.id, lat: marker.exit.position.lat, lng: marker.exit.position.lng };
+      var data = { weight: 40 };
+      graph.addLink(map.name + '_' + a.id, marker.exit.map + '_' + b.id, data);
+    }
   }
 }
 
@@ -195,7 +210,7 @@ function findPath(fromMap, fromId, toMap, toId) {
   let graph = createGraph();
 
   if (!fs.existsSync(cachedGraph)) {
-    console.error('No graph found');
+    console.log('No graph found');
     return false;
   }
 
@@ -204,6 +219,10 @@ function findPath(fromMap, fromId, toMap, toId) {
 
   for (link of data.links) {
     graph.addLink(link.fromId, link.toId, link.data);
+  }
+
+  for (node of data.nodes) {
+    graph.addNode(node.id, node.data);
   }
 
   let pathN = require('ngraph.path');
@@ -217,6 +236,7 @@ function findPath(fromMap, fromId, toMap, toId) {
     let p = pathFinder.find(fromMap + '_' + fromId, toMap + '_' + toId);
     return p;
   } catch (err) {
+    console.log(err);
     return false;
   }
 }
