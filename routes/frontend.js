@@ -41,7 +41,7 @@ router.get(
 // @route GET api/app/navigate/:start/:end
 // @desc GET path
 // @access Public
-router.get(
+router.post(
   '/navigate/:start/:end',
   [
     check('start')
