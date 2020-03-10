@@ -92,7 +92,15 @@ router.post(
         map = node.data.map;
         step++;
         var filename = await Map.findById(map).select('mapFileName');
-        response[step] = { mapFileName: filename.mapFileName, polyline: [], markers: [] };
+
+        var dimensions = {};
+        var imageData = fs.createReadStream(path.resolve('./userUploads', filename));
+        await probe(imageData).then(res => {
+          dimensions.width = res.width;
+          dimensions.height = res.height;
+        });
+
+        response[step] = { mapFileName: filename.mapFileName, dimensions: { width: dimensions.width, height: dimensions.height }, polyline: [], markers: [] };
         response[step].markers.push({ lat: node.data.lat, lng: node.data.lng, flag: 'start' });
       }
       response[step].polyline.push({ lat: node.data.lat, lng: node.data.lng });

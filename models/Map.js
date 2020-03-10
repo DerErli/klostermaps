@@ -17,6 +17,10 @@ const CardSchema = new Schema({
     data: String,
     contentType: String
   },
+  dimensions: {
+    width: { type: Number },
+    height: { type: Number }
+  },
   markers: [
     {
       id: { type: Number },

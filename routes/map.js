@@ -73,6 +73,14 @@ router.post(
     //image
     let mapFileName = req.body.mapFileName;
     let data = fs.readFileSync(path.resolve('./userUploads', mapFileName));
+
+    var dimensions = {};
+    var imageData = fs.createReadStream(path.resolve('./userUploads', mapFileName));
+    await probe(imageData).then(res => {
+      dimensions.width = res.width;
+      dimensions.height = res.height;
+    });
+    
     data = Buffer.alloc(data.byteLength, data, 'binary').toString('base64');
     var mapRawImage = { data: String(data), contentType: path.extname(mapFileName) };
 
@@ -81,6 +89,7 @@ router.post(
       description,
       mapFileName,
       mapRawImage,
+      dimensions,
       markers,
       polylines
     });
