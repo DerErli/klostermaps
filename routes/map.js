@@ -4,6 +4,7 @@ const fs = require('fs');
 const uuid = require('uuid/v4');
 const path = require('path');
 const mv = require('mv');
+var probe = require('probe-image-size');
 const { header, body, validationResult } = require('express-validator');
 
 const Map = require('../models/Map');
@@ -177,6 +178,12 @@ router.post(
     let tempNew = path.resolve('./tmp', uuid() + '.' + type.replace('image/', ''));
     fs.renameSync(temp, tempNew);
 
+    var dimensions;
+    var imageData = fs.createReadStream(tempNew);
+    await probe(imageData).then(res => {
+      dimensions = res;
+    });
+
     //move
     mv(tempNew, path.resolve('./userUploads', path.basename(tempNew)), err => {
       if (err) console.error(err);
@@ -184,7 +191,7 @@ router.post(
 
     //save map
     try {
-      res.json({ msg: 'Image saved', fileName: path.basename(tempNew) });
+      res.json({ msg: 'Image saved', fileName: path.basename(tempNew), dimensions: { width: dimensions.width, height: dimensions.height } });
     } catch (err) {
       res.status(500).json({ msg: 'Internal server error', err: err });
     }
