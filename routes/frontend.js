@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs-extra');
+const probe = require('probe-image-size');
 const { check, validationResult } = require('express-validator');
 
 const Map = require('../models/Map');
@@ -94,7 +95,7 @@ router.post(
         var filename = await Map.findById(map).select('mapFileName');
 
         var dimensions = {};
-        var imageData = fs.createReadStream(path.resolve('./userUploads', filename));
+        var imageData = fs.createReadStream(path.resolve('./userUploads', filename.mapFileName));
         await probe(imageData).then(res => {
           dimensions.width = res.width;
           dimensions.height = res.height;
