@@ -1,11 +1,11 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs-extra');
-const probe = require('probe-image-size');
 const { check, validationResult } = require('express-validator');
 
 const Map = require('../models/Map');
 const findPath = require('../scripts/pathfinding').findPath;
+const cachedKeywords = path.resolve('./userUploads', 'cachedKeywordsTmp.json');
 
 const router = express.Router();
 
@@ -59,7 +59,6 @@ router.post(
       return res.status(422).json({ errors: errors.array() });
     }
 
-    const cachedKeywords = path.resolve('./userUploads', 'cachedKeywordsTmp.json');
     var keywords = fs.readJSONSync(cachedKeywords);
     keywords = JSON.parse(keywords);
     keywords = keywords.keywords;
@@ -91,27 +90,31 @@ router.post(
     for (node of weg) {
       if (node.data.map != map || !map) {
         map = node.data.map;
+        if (step > -1) response[step].polyline.reverse();
         step++;
-        var filename = await Map.findById(map).select('mapFileName');
+        var filename = await Map.findById(map).select('mapFileName dimensions');
 
-        var dimensions = {};
-        var imageData = fs.createReadStream(path.resolve('./userUploads', filename.mapFileName));
-        await probe(imageData).then(res => {
-          dimensions.width = res.width;
-          dimensions.height = res.height;
-        });
-
-        response[step] = { mapFileName: filename.mapFileName, dimensions: { width: dimensions.width, height: dimensions.height }, polyline: [], markers: [] };
+        response[step] = { mapFileName: filename.mapFileName, dimensions: filename.dimensions, polyline: [], markers: [] };
         response[step].markers.push({ lat: node.data.lat, lng: node.data.lng, flag: 'start' });
       }
       response[step].polyline.push({ lat: node.data.lat, lng: node.data.lng });
       response[step].markers[1] = { lat: node.data.lat, lng: node.data.lng, flag: 'stairway' };
     }
+    response[step].polyline.reverse();
     response[step].markers[1].flag = 'goal';
     return res.json(response);
   }
 );
 
-//.find({ $text: { $search: searchString }, accepted: true })
+// @route GET api/app/keywords
+// @desc GET keywords
+// @access Public
+router.get('keywords', (req, res) => {
+  var keywords = fs.readJSONSync(cachedKeywords);
+  keywords = JSON.parse(keywords);
+  keywords = keywords.keywords;
+
+  res.json(keywords);
+});
 
 module.exports = router;

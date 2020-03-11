@@ -8,6 +8,7 @@ const cacheKeywords = require('../scripts/helper').cacheKeywords;
 
 const router = express.Router();
 
+//cache keywords after events have changed
 router.use(function(req, res, next) {
   if (req.method != 'GET') {
     res.on('finish', () => {
@@ -103,7 +104,7 @@ router.get(
       return res.status(422).json({ errors: errors.array() });
     }
 
-    //get events
+    //get and return events
     try {
       var events = await Event.find().select('-__v');
       res.json({ events });
@@ -113,6 +114,9 @@ router.get(
   }
 );
 
+// @route GET api/event/active
+// @desc GET Get active Events
+// @access Protected (token required)
 router.get(
   '/active',
   [
@@ -135,6 +139,7 @@ router.get(
       return res.status(422).json({ errors: errors.array() });
     }
 
+    //get and return active Events
     try {
       var event = await Event.find({ active: true }).select('-__v');
       res.json({ event });
@@ -209,18 +214,15 @@ router.patch(
     }
 
     //update event
-    var eventid = req.params.id;
-
     try {
       var events = await Event.find().select('-__v');
       for (var event of events) {
         await Event.findByIdAndUpdate(event.id, { active: false });
       }
 
-      var event = await Event.findByIdAndUpdate(eventid, { active: true }).select('-__v');
-      event.active = true;
+      var event = await Event.findByIdAndUpdate(req.params.id, { active: true }).select('-__v');
       if (event) {
-        res.json({ msg: `Event activation is set to ${true}`, event });
+        res.json({ msg: `Event activation is set to ${true}` });
       } else {
         res.status(400).json({ msg: 'Event update failed' });
       }
@@ -269,13 +271,7 @@ router.patch(
     try {
       var event = await Event.findByIdAndUpdate(eventid, { keywords }).select('-__v');
       if (event) {
-        var keys = [];
-        for (obj in keywords) {
-          keys.push(keywords[obj].key);
-        }
-        var diff = event.keywords.filter(x => !keys.includes(x.key));
-        if (diff.length == 0) diff = 'No diff found';
-        res.json({ msg: 'Event keywords updated', diff });
+        res.json({ msg: 'Event keywords updated' });
       } else {
         res.status(400).json({ msg: 'Event update failed' });
       }
