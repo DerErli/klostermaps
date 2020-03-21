@@ -5,6 +5,8 @@ const crypto = require('crypto');
 const Map = require('../models/Map');
 
 const cachedGraph = path.resolve('./userUploads', 'cachedGraphTmp.json');
+const threshold = 20;
+const lineThreshold = 0.05;
 
 async function cacheGraph() {
   try {
@@ -73,8 +75,6 @@ function extendGraph(map, graph, stairways) {
   }
 
   //-->merge close points
-  const threshold = 20;
-
   for (a of points) {
     let same = points.filter(b => {
       if (b.fwd) return false;
@@ -102,60 +102,8 @@ function extendGraph(map, graph, stairways) {
     }
   }
 
-  //check for intersecting connections
-  function checkIntersect(l1, l2) {
-    //convert lines and check for same points
-    var arr = [l1.start, l1.end, l2.start, l2.end];
-    if (
-      arr.some((value, index, array) => {
-        return array.indexOf(value, index + 1) !== -1;
-      })
-    )
-      return false;
-
-    l1 = connectionToLine(l1);
-    l2 = connectionToLine(l2);
-
-    //checks for intersect
-    var s1_x, s1_y, s2_x, s2_y;
-    s1_x = l1.p2[0] - l1.p1[0];
-    s1_y = l1.p2[1] - l1.p1[1];
-    s2_x = l2.p2[0] - l2.p1[0];
-    s2_y = l2.p2[1] - l2.p1[1];
-
-    var s, t;
-    s = (-s1_y * (l1.p1[0] - l2.p1[0]) + s1_x * (l1.p1[1] - l2.p1[1])) / (-s2_x * s1_y + s1_x * s2_y);
-    t = (s2_x * (l1.p1[1] - l2.p1[1]) - s2_y * (l1.p1[0] - l2.p1[0])) / (-s2_x * s1_y + s1_x * s2_y);
-
-    if (s >= 0 && s <= 1 && t >= 0 && t <= 1) {
-      var i_x = l1.p1[0] + t * s1_x;
-      var i_y = l1.p1[1] + t * s1_y;
-      return [i_x, i_y];
-    } else {
-      return false;
-    }
-  }
-
-  function connectionToLine(c) {
-    var p1 = points.find(p => {
-      return p.id == c.start;
-    });
-    var p2 = points.find(p => {
-      return p.id == c.end;
-    });
-    var l = { p1: [p1.lat, p1.lng], p2: [p2.lat, p2.lng] };
-    return l;
-  }
-
-  function getRealId(id) {
-    var point = points.find(p => {
-      return p.id == id;
-    });
-    return point.alias ? point.alias : point.id;
-  }
-
-  for (var x = connections.length - 1; x > 0; x--) {
-    for (var y = x - 1; y > 0; y--) {
+  for (var x = connections.length - 1; x >= 0; x--) {
+    for (var y = x - 1; y >= 0; y--) {
       var intersect = checkIntersect(connections[x], connections[y]);
       if (intersect) {
         points.push({ id: i, lat: intersect[0], lng: intersect[1], map: map._id });
@@ -202,6 +150,59 @@ function extendGraph(map, graph, stairways) {
       var data = { weight: 40 };
       graph.addLink(map.name + '_' + a.id, marker.exit.map + '_' + b.id, data);
     }
+  }
+
+  //check for intersecting connections
+  function checkIntersect(l1, l2) {
+    //convert lines and check for same points
+    var arr = [l1.start, l1.end, l2.start, l2.end];
+    if (
+      arr.some((value, index, array) => {
+        return array.indexOf(value, index + 1) !== -1;
+      })
+    )
+      return false;
+
+    l1 = connectionToLine(l1);
+    l2 = connectionToLine(l2);
+
+    //checks for intersect
+    var s1_x, s1_y, s2_x, s2_y;
+    s1_x = l1.p2[0] - l1.p1[0];
+    s1_y = l1.p2[1] - l1.p1[1];
+    s2_x = l2.p2[0] - l2.p1[0];
+    s2_y = l2.p2[1] - l2.p1[1];
+
+    var s, t;
+    s = (-s1_y * (l1.p1[0] - l2.p1[0]) + s1_x * (l1.p1[1] - l2.p1[1])) / (-s2_x * s1_y + s1_x * s2_y);
+    t = (s2_x * (l1.p1[1] - l2.p1[1]) - s2_y * (l1.p1[0] - l2.p1[0])) / (-s2_x * s1_y + s1_x * s2_y);
+
+    if (s >= 0 - lineThreshold && s <= 1 + lineThreshold && t >= 0 - lineThreshold && t <= 1 + lineThreshold) {
+      var i_x = l1.p1[0] + t * s1_x;
+      var i_y = l1.p1[1] + t * s1_y;
+      return [i_x, i_y];
+    } else {
+      console.log(s, t);
+      return false;
+    }
+  }
+
+  function connectionToLine(c) {
+    var p1 = points.find(p => {
+      return p.id == c.start;
+    });
+    var p2 = points.find(p => {
+      return p.id == c.end;
+    });
+    var l = { p1: [p1.lat, p1.lng], p2: [p2.lat, p2.lng] };
+    return l;
+  }
+
+  function getRealId(id) {
+    var point = points.find(p => {
+      return p.id == id;
+    });
+    return point.alias ? point.alias : point.id;
   }
 }
 
