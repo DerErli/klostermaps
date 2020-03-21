@@ -182,7 +182,6 @@ function extendGraph(map, graph, stairways) {
       var i_y = l1.p1[1] + t * s1_y;
       return [i_x, i_y];
     } else {
-      console.log(s, t);
       return false;
     }
   }

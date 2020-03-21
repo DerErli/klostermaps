@@ -8,6 +8,7 @@ var probe = require('probe-image-size');
 const { header, body, validationResult } = require('express-validator');
 
 const Map = require('../models/Map');
+const Event = require('../models/Event');
 const webTkn = require('../config/keys').webTkn;
 
 const router = express.Router();
@@ -80,7 +81,7 @@ router.post(
       dimensions.width = res.width;
       dimensions.height = res.height;
     });
-    
+
     data = Buffer.alloc(data.byteLength, data, 'binary').toString('base64');
     var mapRawImage = { data: String(data), contentType: path.extname(mapFileName) };
 
@@ -274,6 +275,14 @@ router.delete(
         res.json({ msg: 'Map deleted', map });
       } else {
         res.status(400).json({ msg: 'Map not found' });
+      }
+      //delete all related keywords
+      var events = await Event.find().select('keywords');
+      for (event of events) {
+        var keywords = event.keywords.filter(key => {
+          return key.map != req.params.id;
+        });
+        if (event.keywords != keywords) await Event.findByIdAndUpdate(event._id, { keywords });
       }
     } catch (err) {
       res.status(500).json({ msg: 'Internal server error', err: err });
