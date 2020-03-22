@@ -48,7 +48,7 @@ async function cacheGraph() {
   }
 }
 
-function extendGraph(map, graph, stairways) {
+function extendGraph(map, graph) {
   let connections = [];
   let points = [];
 
@@ -59,7 +59,7 @@ function extendGraph(map, graph, stairways) {
   for (marker of map.markers) {
     let pos = marker.position;
     let point = { id: marker.id, lat: pos.lat, lng: pos.lng, map: map._id };
-    if (marker.type == 'stairway') point.flag = 'stairway';
+    if (marker.roomType == 'stairway') point.flag = 'stairway';
     points.push(point);
   }
 
@@ -128,7 +128,7 @@ function extendGraph(map, graph, stairways) {
   });
 
   for (point of points) {
-    graph.addNode(map.name + '_' + point.id, point);
+    graph.addNode(map._id + '_' + point.id, point);
   }
 
   for (link of connections) {
@@ -140,13 +140,13 @@ function extendGraph(map, graph, stairways) {
     });
     var dist = Math.sqrt(Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2));
     var data = { weight: dist };
-    graph.addLink(map.name + '_' + link.start, map.name + '_' + link.end, data);
+    graph.addLink(map._id + '_' + link.start, map._id + '_' + link.end, data);
   }
 
   for (marker of map.markers) {
-    if (marker.type == 'stairway') {
+    if (marker.roomType == 'stairway' && marker.stairwayDetails) {
       var data = { weight: 100 };
-      graph.addLink(map.name + '_' + marker.id, marker.stairwayDetails.targetMapId + '_' + marker.stairwayDetails.exitId, data);
+      graph.addLink(map._id + '_' + marker.id, marker.stairwayDetails.targetMapId + '_' + marker.stairwayDetails.exitId, data);
     }
   }
 

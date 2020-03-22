@@ -26,7 +26,7 @@ const CardSchema = new Schema({
       id: { type: Number },
       position: { type: Object },
       roomType: { type: String },
-      exit: { type: Object }
+      stairwayDetails: { type: Object }
     }
   ],
   polylines: [{ nodes: { type: Array } }]

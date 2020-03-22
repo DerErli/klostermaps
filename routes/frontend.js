@@ -76,10 +76,7 @@ router.post(
       return res.status(400).json({ msg });
     }
 
-    var startMap = await Map.findById(start.map).select('name');
-    var endMap = await Map.findById(start.map).select('name');
-
-    var weg = findPath(startMap.name, start.pos, endMap.name, end.pos);
+    var weg = findPath(start.map, start.pos, end.map, end.pos);
     if (!weg[0]) {
       return res.status(500).json({ msg: `Kein Weg zwischen '${start.key}' und '${end.key}' gefunden!` });
     }
@@ -95,13 +92,14 @@ router.post(
         var filename = await Map.findById(map).select('mapFileName dimensions');
 
         response[step] = { mapFileName: filename.mapFileName, dimensions: filename.dimensions, polyline: [], markers: [] };
-        response[step].markers.push({ lat: node.data.lat, lng: node.data.lng, flag: req.params.end });
+        response[step].markers.push({ lat: node.data.lat, lng: node.data.lng, flag: 'stairway' });
       }
       response[step].polyline.push({ lat: node.data.lat, lng: node.data.lng });
       response[step].markers[1] = { lat: node.data.lat, lng: node.data.lng, flag: 'stairway' };
     }
     response[step].polyline.reverse();
-    response[step].markers[1].flag = req.params.start;
+    response[0].markers[1].flag = req.params.start;
+    response[step].markers[0].flag = req.params.end;
     return res.json(response);
   }
 );
