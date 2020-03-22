@@ -84,8 +84,6 @@ router.post(
       return res.status(500).json({ msg: `Kein Weg zwischen '${start.key}' und '${end.key}' gefunden!` });
     }
 
-    console.log(weg == []);
-
     var response = {};
     var map;
     let step = -1;
