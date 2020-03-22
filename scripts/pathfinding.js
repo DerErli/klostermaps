@@ -145,10 +145,8 @@ function extendGraph(map, graph, stairways) {
 
   for (marker of map.markers) {
     if (marker.type == 'stairway') {
-      var a = { id: marker.id, lat: marker.pos.lat, lng: marker.pos.lng };
-      var b = { id: marker.exit.id, lat: marker.exit.position.lat, lng: marker.exit.position.lng };
-      var data = { weight: 40 };
-      graph.addLink(map.name + '_' + a.id, marker.exit.map + '_' + b.id, data);
+      var data = { weight: 100 };
+      graph.addLink(map.name + '_' + marker.id, marker.stairwayDetails.targetMapId + '_' + marker.stairwayDetails.exitId, data);
     }
   }
 
