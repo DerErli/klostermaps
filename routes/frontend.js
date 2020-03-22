@@ -81,25 +81,25 @@ router.post(
       return res.status(500).json({ msg: `Kein Weg zwischen '${start.key}' und '${end.key}' gefunden!` });
     }
 
+    weg.reverse();
+
     var response = {};
     var map;
     let step = -1;
     for (node of weg) {
       if (node.data.map != map || !map) {
         map = node.data.map;
-        if (step > -1) response[step].polyline.reverse();
         step++;
-        var filename = await Map.findById(map).select('mapFileName dimensions');
 
+        var filename = await Map.findById(map).select('mapFileName dimensions');
         response[step] = { mapFileName: filename.mapFileName, dimensions: filename.dimensions, polyline: [], markers: [] };
         response[step].markers.push({ lat: node.data.lat, lng: node.data.lng, flag: 'stairway' });
       }
       response[step].polyline.push({ lat: node.data.lat, lng: node.data.lng });
       response[step].markers[1] = { lat: node.data.lat, lng: node.data.lng, flag: 'stairway' };
     }
-    response[step].polyline.reverse();
-    response[0].markers[1].flag = req.params.start;
-    response[step].markers[0].flag = req.params.end;
+    response[0].markers[0].flag = req.params.start;
+    response[step].markers[1].flag = req.params.end;
     return res.json(response);
   }
 );
