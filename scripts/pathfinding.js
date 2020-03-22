@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const Map = require('../models/Map');
 
 const cachedGraph = path.resolve('./userUploads', 'cachedGraphTmp.json');
-const threshold = 20;
+const threshold = 30;
 const lineThreshold = 0.05;
 
 async function cacheGraph() {
