@@ -80,9 +80,11 @@ router.post(
     var endMap = await Map.findById(start.map).select('name');
 
     var weg = findPath(startMap.name, start.pos, endMap.name, end.pos);
-    if (!weg) {
-      return res.json({ msg: `Kein Weg zwischen '${start.key}' und '${end.key}' gefunden!` });
+    if (!weg[0]) {
+      return res.status(500).json({ msg: `Kein Weg zwischen '${start.key}' und '${end.key}' gefunden!` });
     }
+
+    console.log(weg == []);
 
     var response = {};
     var map;
