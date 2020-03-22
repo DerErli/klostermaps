@@ -109,7 +109,7 @@ router.post(
 // @route GET api/app/keywords
 // @desc GET keywords
 // @access Public
-router.get('keywords', (req, res) => {
+router.get('/keywords', (req, res) => {
   var keywords = fs.readJSONSync(cachedKeywords);
   keywords = JSON.parse(keywords);
   keywords = keywords.keywords;
