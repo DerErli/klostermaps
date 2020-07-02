@@ -67,7 +67,7 @@ router.post(
 
     //params
     var name = req.body.name;
-    var description = req.body.description ? req.body.description : 'New map!';
+    var description = req.body.description ? req.body.description : '';
     var markers = req.body.markers ? req.body.markers : [];
     var polylines = req.body.polylines ? req.body.polylines : [];
 
