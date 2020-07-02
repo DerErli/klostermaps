@@ -146,8 +146,8 @@ function extendGraph(map, graph) {
   for (marker of map.markers) {
     if (marker.roomType == 'stairway' && marker.stairwayDetails) {
       var data = { weight: 100 };
-      for (exit of marker.stairwayDetails.exitId) {
-        graph.addLink(map._id + '_' + marker.id, marker.stairwayDetails.targetMapId + '_' + exit, data);
+      for (exit in marker.stairwayDetails.exitId) {
+        graph.addLink(map._id + '_' + marker.id, marker.stairwayDetails.targetMapId[exit] + '_' + marker.stairwayDetails.exitId[exit], data);
       }
     }
   }
